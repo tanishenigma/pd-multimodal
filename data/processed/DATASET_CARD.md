@@ -14,7 +14,7 @@ Full count tables are in `counts_images.csv` and `counts_signals.csv`.
 - **Use `subject_group`, not `subject_id`, for train/test splits.** It merges subject IDs that share identical images (see the caveats below).
 
 ## Totals
-- Images: 2809 (1296 scan + 1513 rendered), 374 subject groups (238 PD, 136 HC).
+- Images: 2963 (1450 scan + 1513 rendered), 376 subject groups (239 PD, 137 HC).
 - Signals: 2385, 260 subject groups (148 PD, 112 HC).
 - New in this revision: HandyDiag (Thai handwriting + drawing tablet signals, 60 HC / 59 PD), 1252 signals and 1172 rendered images. It is the first source with real word and sentence handwriting at scale.
 
@@ -30,6 +30,7 @@ Full count tables are in `counts_images.csv` and `counts_signals.csv`.
 | kmader_drawings | wave | 51 / 13 | 51 / 15 |
 | uci395 | static_spiral | 0 | 25 / 25 |
 | uci395 | dynamic_spiral | 0 | 25 / 25 |
+| manual_kaggle_awais_phone | spiral (phone photos) | 83 / 1 | 71 / 1 |
 
 ## Signals (samples / subjects). Every signal with x,y also has a `<task>_rendered` image.
 | source | task | HC | PD |
@@ -112,7 +113,7 @@ HandyDiag counts include both hands; the hand is in `note`. 80 HandyDiag signals
   - 37 task/hand arrays are empty (mostly the left hand). They were skipped and are listed in `signals_skipped_duplicates.csv`.
 - License: non-commercial research and education only. Cite Chanwimalueang, Methawasin, Saetee, Rueangrong, Rung-ruang, Tantisatirapong, "Digital Thai Handwriting for Parkinson's Disease Screening", Scientific Reports, 2026.
 
-### Manual-drop hooks (empty by default)
+### Manual-drop hooks (currently: kaggle_awais_phone)
 - `data/raw/manual/images/<source>/...`: login-gated image sets such as Kaggle zips. The label comes from a folder name (healthy/control/hc/normal or parkinson/pd/patient/pwp). Exact md5 duplicates of existing images are dropped, and near-duplicates are flagged in `overlap_flag`. `source_dataset` is `manual_<source>`.
 - `data/raw/manual/pahaw/`: the full licensed PaHaW. Files identical to `pahaw_examples` are skipped. `source_dataset` is `pahaw_full`.
 - See `MANUAL_DOWNLOADS.md`.
@@ -145,9 +146,21 @@ HandyDiag counts include both hands; the hand is in `note`. 80 HandyDiag signals
 - HandPDMultiMC / PDMultiMC: no public download link found.
 - DraWritePD: only segmentation code (`SvenNomm/drawritepd_segmentation`); the data is not public.
 
+## Kaggle sources (2026-11-12)
+All downloaded with the Kaggle CLI into `data/raw/kaggle/<owner>_<slug>` and checked by md5 and by a rotation/flip-invariant 32x32 correlation against the existing raw data.
+- ACCEPT `mohammedawais505/parkinsons-detection-spiral-drawings-dataset`: 256 images; 102 duplicate kmader spirals. The 154 new phone-photo spirals (83 HC, 71 PD) are staged as `data/raw/manual/images/kaggle_awais_phone/` (`source_dataset` `manual_kaggle_awais_phone`). Subjects are undocumented, so each label is one subject group (`.one_subject_per_label`). License as stated on Kaggle.
+- REJECT `aashiqa/parkinsonsdataset`: 1902 images (HandPD, NewHandPD, kmader). All 1902 are md5-identical to existing data.
+- REJECT `asthamishra96/parkinson-multi-model-dataset-2-0` (license unknown, 2.5 GB): its 204 spiral/wave drawings are md5-identical to kmader. The rest are other modalities, not added: voice WAVs (37 HC / 31 PD; the `ID00_hc_0_0_0` naming matches MDVR-KCL), DaTSCAN (30/30), brain MRI (640 HC / 251 PD), ECG images (516 / 160).
+- REJECT `fatmabaccouche/parkinson-detection` (Roboflow export, CC BY 4.0): 15570 images, resized to 640x640, histogram-equalised and augmented 2x (rotation, shear, noise). 3373 match existing images under rotation/flip. The rest are augmentations of kmader-style spirals/waves; no originals.
+- REJECT `adritachakrabarti/ndegdis-datasets`: 747 images; 662 md5-identical to kmader and UCI 395. Of the rest, 73 are bipolar-disorder handwriting (not PD) and 12 `spirals/extra/extra_0_*.png` are unlabelled Keras-style augmentations. It also has UCI hw_dataset text files (already present).
+- REJECT `dhiaeddinear/parkinson-drawings`: kmader plus "Gen" augmentations.
+- REJECT `mohammadrezabaqery/parkinson-dataset`: kmader duplicate (204 of 209 match; 5 left are near-copies).
+- REJECT `jallipallisaibalaji/parkinson-drawing-images`: Roboflow object-detection export, augmented, mostly duplicates.
+- REJECT `anoushkasud/parkinson-spiral-test`: 35 renders, only 3 unique, likely UCI-derived.
+
 ## Failed or not obtained
 - Full PaHaW: needs a license or login.
-- Kaggle kmader via the Kaggle CLI: not installed and needs a login. The GitHub mirror was used instead.
+- Kaggle kmader via the Kaggle CLI: not used; the GitHub mirror is identical. The Kaggle CLI is now installed (see the Kaggle sources section).
 - `sayakpaul/Parkinson-s-Disease-Classifier`: only the kmader wave images, which are redundant.
 - `musaru/PD_PaHaW`: only derived feature CSVs, no raw data.
 - `khareyash05/...`: only models and notebooks, no data.

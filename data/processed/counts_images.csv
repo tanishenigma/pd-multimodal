@@ -19,6 +19,8 @@ kmader_drawings,scan,spiral,0,51,13,13
 kmader_drawings,scan,spiral,1,51,15,15
 kmader_drawings,scan,wave,0,51,13,13
 kmader_drawings,scan,wave,1,51,15,15
+manual_kaggle_awais_phone,scan,spiral,0,83,1,1
+manual_kaggle_awais_phone,scan,spiral,1,71,1,1
 newhandpd,scan,circle,0,35,35,35
 newhandpd,scan,circle,1,31,31,25
 newhandpd,scan,meander,0,140,35,35

@@ -5,3 +5,4 @@ data/raw/
 data/processed/images/
 data/processed/signals/
 .idea/
+kinematic_features/output/

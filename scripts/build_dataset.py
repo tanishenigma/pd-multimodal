@@ -208,8 +208,13 @@ def collect_images():
                 "train", "training", "test", "testing", "val") else "unknown"
             name = re.sub(r"\W+", "_", srcdir.name).strip("_")
             stem = re.sub(r"\W+", "_", "_".join(f.relative_to(srcdir).with_suffix("").parts)).strip("_")
-            add(f, f"manual_{name}", task, labs[-1], f"manual_{name}_{stem}", f"manual_{name}_{stem}",
-                note="manual drop; subject unknown (one subject_id per image)")
+            # A `.one_subject_per_label` marker file means subjects are undocumented and may repeat across images:
+            # put each label's images in one subject so a split can never leak a person across train/test.
+            if (srcdir / ".one_subject_per_label").exists():
+                subj, note = f"manual_{name}_{'PD' if labs[-1] else 'HC'}", "manual drop; subjects undocumented, one group per label"
+            else:
+                subj, note = f"manual_{name}_{stem}", "manual drop; subject unknown (one subject_id per image)"
+            add(f, f"manual_{name}", task, labs[-1], subj, f"manual_{name}_{stem}", note=note)
     return rows
 
 

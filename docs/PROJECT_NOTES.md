@@ -219,7 +219,7 @@ pd-multimodal/
 │   └── README.md
 ├── kinematic_features/             Step 3: kinematic feature extraction (handwriting branch)
 │   ├── features.py
-│   ├── run_pipeline.py
+│   ├── run_pipeline.ipynb
 │   ├── output/kinematic_features.csv
 │   └── README.md
 ├── docs/
@@ -276,7 +276,7 @@ Design decisions:
 
 ### 5.5 `kinematic_features/`
 
-`features.py` computes one row of features per recording (Step 3). `run_pipeline.py` runs the full handwriting branch: input, routing, preprocessing and feature extraction. It writes `kinematic_features/output/kinematic_features.csv` (not committed, listed in `.gitignore`).
+`features.py` computes one row of features per recording (Step 3). `run_pipeline.ipynb` runs the full handwriting branch: input, routing, preprocessing and feature extraction. It writes `kinematic_features/output/kinematic_features.csv` (not committed, listed in `.gitignore`).
 
 Features (21 columns, plus 6 metadata columns: `sample_id`, `source_dataset`, `task`, `label`, `subject_id`, `subject_group`):
 
@@ -304,13 +304,13 @@ Design decisions in the feature code:
 |---|---|---|
 | `data_input/` | Tanish Sharma (231030199) | `load_data.py`, README |
 | `preprocessing/` | Agniprabha Ganguly (231030206) | `preprocess.py`, README |
-| `kinematic_features/` | Bhumika Chadha (231030036) | `features.py`, `run_pipeline.py`, README, output |
+| `kinematic_features/` | Bhumika Chadha (231030036) | `features.py`, `run_pipeline.ipynb`, README, output |
 
 ---
 
 ## 6. Preliminary Observations (Descriptive Only)
 
-These are descriptive means from one run of `run_pipeline.py` on 2385 handwriting recordings. The recordings are not independent: several come from the same subject, and the tasks differ (spirals, lines, words, sentences). **No classifier has been trained, and these numbers do not measure diagnostic performance.**
+These are descriptive means from one run of `run_pipeline.ipynb` on 2385 handwriting recordings. The recordings are not independent: several come from the same subject, and the tasks differ (spirals, lines, words, sentences). **No classifier has been trained, and these numbers do not measure diagnostic performance.**
 
 ### 6.1 Overall, by label
 

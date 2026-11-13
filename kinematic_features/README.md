@@ -10,6 +10,6 @@ Flowchart step: **Kinematic Feature Extraction** (handwriting branch).
   - Pressure: mean, std, coefficient of variation.
   - Tremor: power share in the 4–12 Hz band.
   - `has_xy` flag: NewHandPD smart pen has no x, y, so its kinematic columns are NaN and tremor comes from the pen accelerometer.
-- `run_pipeline.py`: runs data_input → preprocessing → features for all handwriting recordings.
+- `run_pipeline.ipynb`: runs data_input → preprocessing → features for all handwriting recordings.
 
-Run: `.venv/bin/python kinematic_features/run_pipeline.py` → `kinematic_features/output/kinematic_features.csv` (not committed).
+Run: open `kinematic_features/run_pipeline.ipynb` and run all cells → `kinematic_features/output/kinematic_features.csv` (not committed).
