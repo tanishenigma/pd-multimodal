@@ -44,12 +44,26 @@ EXTRA_FILES = [f"{HPD}/{f}" for f in ("Spiral_HandPD.csv", "Meander_HandPD.csv",
 REPOS = {  # only data-bearing repos are used; others were checked and hold no raw data
     "handwriting-features": "https://github.com/BDALab/handwriting-features.git",  # 4 PaHaW example subjects
     "widushan": "https://github.com/widushan/Parkinson-Disease-Detection-from-Spiral-and-Wave-Drawings.git",  # kmader mirror
+    "handydiag": "https://github.com/suchadat/HandyDiag_v1.0.git",  # Thai handwriting + drawing tablet signals, 60 HC / 59 PD
 }
+REPO_ZIPS = {"handydiag": ("handydiag", ["Data_HC.zip", "Data_PD.zip"])}  # repo -> (extract dir, data zips inside repo)
+# Login-gated / license-gated sources: drop files here by hand (see data/processed/MANUAL_DOWNLOADS.md).
+MANUAL = RAW / "manual"
+MANUAL_LABEL_DIRS = {"healthy": 0, "control": 0, "controls": 0, "hc": 0, "normal": 0,
+                     "parkinson": 1, "parkinsons": 1, "pd": 1, "patient": 1, "patients": 1, "pwp": 1}
 
 
 # ---------------------------------------------------------------- download
 def sh(*a):
     subprocess.run(a, check=True)
+
+
+def safe_extract(zpath, dest):
+    with zipfile.ZipFile(zpath) as zf:
+        for m in zf.namelist():  # guard against path traversal
+            if m.startswith("/") or ".." in Path(m).parts:
+                raise RuntimeError(f"unsafe member {m}")
+        zf.extractall(dest)
 
 
 def download():
@@ -61,11 +75,7 @@ def download():
         dest = RAW / name
         if not dest.exists():
             dest.mkdir(parents=True)
-            with zipfile.ZipFile(z) as zf:
-                for m in zf.namelist():  # guard against path traversal
-                    if m.startswith("/") or ".." in Path(m).parts:
-                        raise RuntimeError(f"unsafe member {m}")
-                zf.extractall(dest)
+            safe_extract(z, dest)
     for url in EXTRA_FILES:
         f = DL / Path(url).name
         if not f.exists():
@@ -76,6 +86,13 @@ def download():
         if not d.exists():
             env = dict(os.environ, GIT_TERMINAL_PROMPT="0")
             subprocess.run(["git", "clone", "-q", "--depth", "1", url, str(d)], check=True, env=env)
+    for repo, (name, zips) in REPO_ZIPS.items():
+        dest = RAW / name
+        if not dest.exists():
+            dest.mkdir(parents=True)
+            for z in zips:
+                safe_extract(RAW / "repos" / repo / z, dest)
+    MANUAL.mkdir(exist_ok=True)
 
 
 # ---------------------------------------------------------------- helpers
@@ -176,6 +193,23 @@ def collect_images():
         assert (m.group(2) == "P") == bool(lab), f
         add(f, "kmader_drawings", task, lab, f"kmader_V{m.group(1)}{m.group(2)}",
             f"kmader_{task}_V{m.group(1)}{m.group(2)}_{m.group(4)}_{split}", split_hint=split)
+    # Manual drops (login-gated Kaggle etc.): data/raw/manual/images/<source>/[<task>/...]<label dir>/*.png|jpg.
+    # Label from the nearest folder named in MANUAL_LABEL_DIRS; task = first folder under <source> unless it is a
+    # label/split folder. Exact duplicates of existing images are dropped later by md5 (lowest priority).
+    for srcdir in sorted(p for p in (MANUAL / "images").glob("*") if p.is_dir()):
+        for f in sorted(srcdir.rglob("*")):
+            if f.suffix.lower() not in (".png", ".jpg", ".jpeg", ".bmp", ".tif", ".tiff") or "__MACOSX" in f.parts:
+                continue
+            parts = [x.lower() for x in f.relative_to(srcdir).parts[:-1]]
+            labs = [MANUAL_LABEL_DIRS[x] for x in parts if x in MANUAL_LABEL_DIRS]
+            if not labs:
+                continue
+            task = parts[0] if parts and parts[0] not in MANUAL_LABEL_DIRS and parts[0] not in (
+                "train", "training", "test", "testing", "val") else "unknown"
+            name = re.sub(r"\W+", "_", srcdir.name).strip("_")
+            stem = re.sub(r"\W+", "_", "_".join(f.relative_to(srcdir).with_suffix("").parts)).strip("_")
+            add(f, f"manual_{name}", task, labs[-1], f"manual_{name}_{stem}", f"manual_{name}_{stem}",
+                note="manual drop; subject unknown (one subject_id per image)")
     return rows
 
 
@@ -289,6 +323,96 @@ def pahaw_signal_rows(sig_rows, writes):
                              original_path=rel(f), n_samples=len(out), sampling="~150-200 Hz", note=f.parent.name))
 
 
+HANDYDIAG_TASKS = {"spiral": "spiral", "vertical": "line_vertical", "horizontal": "line_horizontal",
+                   "letters": "handwriting_letters", "letters2": "handwriting_letters2",
+                   "thletters": "handwriting_th_sentence"}
+
+
+def _hd_tok(s):
+    return [np.nan if t.strip() == "null" else float(t) for t in s.strip().strip("[]").split(",") if t.strip()]
+
+
+def handydiag_signal_rows(sig_rows, writes):
+    # HandyDiag (Chanwimalueang et al., Sci Rep 2026): Thai tablet handwriting, one JSON per subject, label from
+    # Data_HC / Data_PD folder. Keys come in two spellings ("Spiral R dx" / "SpiralRDx"): normalized by dropping
+    # spaces + lowercasing. "null" entries in dx/dy/pressure mark pen lifts. Screen coords (y down) -> y negated.
+    # Data bug: in many files the Letters 2 dx/dy arrays are copies of Letters; then x,y are set NaN (or the
+    # whole sample is skipped when pressure is also identical).
+    for grp, lab in (("Data_HC", 0), ("Data_PD", 1)):
+        for f in sorted((RAW / "handydiag" / grp).glob("*_rawdata.json")):
+            d = {re.sub(r"\s+", "", k).lower(): v for k, v in json.loads(f.read_text()).items()}
+            sid0 = re.sub(r"\W+", "_", str(d["id"])).strip("_")
+            subj = f"handydiag_{sid0}"
+            dom = str(d.get("dominanthand", d.get("dominant", ""))).strip().upper()[:1]
+            meta = f"age={d.get('age','')} sex={d.get('sex','')} dominant={dom}"
+            for key, task in HANDYDIAG_TASKS.items():
+                for h in "RL":
+                    k = key + h.lower()
+                    if not d.get(k + "dx"):
+                        continue
+                    note = f"hand={h} ({'dominant' if h == dom else 'non-dominant'}) {meta}"
+                    if key == "letters2" and d[k + "dx"] == d.get("letters" + h.lower() + "dx"):
+                        if d[k + "penpressure"] == d.get("letters" + h.lower() + "penpressure"):
+                            sig_rows.append(dict(sample_id=None, skipped="handydiag letters2 identical to letters",
+                                                 original_path=rel(f) + f"#{k}"))
+                            continue
+                        badxy = True
+                        note += "; x,y NaN: source dx/dy copied from Letters task"
+                    else:
+                        badxy = False
+                    x, y, p, t = (np.array(_hd_tok(d[k + c])) for c in ("dx", "dy", "penpressure", "timestamp"))
+                    n = len(p)
+                    if badxy or len(x) != n:
+                        x = y = np.full(n, np.nan)
+                    m = min(n, len(t))
+                    x, y, p, t = x[:m], y[:m], p[:m], t[:m]
+                    if m < 2:
+                        sig_rows.append(dict(sample_id=None, skipped="handydiag empty timestamp/pressure array",
+                                             original_path=rel(f) + f"#{k}"))
+                        continue
+                    out = pd.DataFrame(dict(t=t - np.nanmin(t), x=x, y=-y, pressure=p, y_screen=y,
+                                            pen_down=~np.isnan(p)))
+                    sid = f"handydiag_{task}_{sid0}_{h}"
+                    writes.append((sid, out))
+                    sig_rows.append(dict(sample_id=sid, source_dataset="handydiag", task=task, label=lab,
+                                         subject_id=subj, original_path=rel(f) + f"#{k}", n_samples=len(out),
+                                         sampling="tablet events (timestamps s)", note=note))
+
+
+def manual_pahaw_signal_rows(sig_rows, writes):
+    # Full PaHaW (license from BDALab): unzip into data/raw/manual/pahaw/. Expects <ID>/<ID>__<task>_<rep>.svc and
+    # corpus_PaHaW.xlsx (or a CSV with ID + Disease columns). Same SVC layout as the example subjects.
+    base = MANUAL / "pahaw"
+    svcs = sorted(base.rglob("*.svc")) if base.exists() else []
+    if not svcs:
+        return
+    lab_files = sorted(base.rglob("*.csv")) + sorted(base.rglob("*.xls*"))
+    if not lab_files:
+        raise RuntimeError("manual/pahaw: no corpus_PaHaW.xlsx / labels CSV found")
+    lf = lab_files[0]
+    meta = pd.read_csv(lf) if lf.suffix == ".csv" else pd.read_excel(lf)  # xlsx needs openpyxl
+    meta.columns = [str(c).strip().lower() for c in meta.columns]
+    labels = {int(i): (1 if str(dz).strip().upper().startswith("PD") else 0) for i, dz in zip(meta["id"], meta["disease"])}
+    ex = {md5(f) for f in (RAW / "repos/handwriting-features/examples/data").glob("*/*.svc")}
+    for f in svcs:
+        m = re.match(r"(\d+)__(\d+)_(\d+)$", f.stem)
+        if not m:
+            continue
+        if md5(f) in ex:
+            sig_rows.append(dict(sample_id=None, skipped="identical to pahaw_examples file", original_path=rel(f)))
+            continue
+        sj, tno, rep = int(m.group(1)), int(m.group(2)), m.group(3)
+        a = np.loadtxt(f, skiprows=1, ndmin=2)
+        task = "spiral" if tno == 1 else f"handwriting_t{tno}"
+        out = pd.DataFrame(dict(t=(a[:, 2] - a[:, 2][0]) / 1000.0, x=a[:, 1], y=a[:, 0], pressure=a[:, 6],
+                                azimuth=a[:, 4], altitude=a[:, 5], button=a[:, 3], pen_down=a[:, 3] > 0))
+        sid = f"pahaw_full_{task}_{sj:05d}_{rep}"
+        writes.append((sid, out))
+        sig_rows.append(dict(sample_id=sid, source_dataset="pahaw_full", task=task, label=labels[sj],
+                             subject_id=f"pahaw_full_{sj:05d}", original_path=rel(f), n_samples=len(out),
+                             sampling="~150-200 Hz", note="may include the 4 pahaw_examples subjects"))
+
+
 # ---------------------------------------------------------------- main
 def main():
     ap = argparse.ArgumentParser()
@@ -316,6 +440,8 @@ def main():
     uci_signal_rows(sig_rows, writes)
     nhpd_signal_rows(sig_rows, writes)
     pahaw_signal_rows(sig_rows, writes)
+    handydiag_signal_rows(sig_rows, writes)
+    manual_pahaw_signal_rows(sig_rows, writes)
     for sid, df in writes:
         df.reset_index(drop=True).to_parquet(SIG / f"{sid}.parquet", index=False)
     sig_all = pd.DataFrame(sig_rows)
@@ -364,8 +490,15 @@ def main():
             if a.src_md5.iloc[i] != b.src_md5.iloc[j]:
                 img.loc[a.index[i], "overlap_flag"] = f"near-dup of {b.sample_id.iloc[j]}"
                 img.loc[b.index[j], "overlap_flag"] = f"near-dup of {a.sample_id.iloc[i]}"
+    man = img.source_dataset.str.startswith("manual_")
+    if man.any() and (~man).any():
+        A, B = np.stack(img[man]._vec), np.stack(img[~man]._vec)
+        S = A @ B.T
+        for i, j in zip(range(len(A)), S.argmax(1)):
+            if S[i, j] >= NEARDUP_CORR and img[man].src_md5.iloc[i] != img[~man].src_md5.iloc[j]:
+                img.loc[img[man].index[i], "overlap_flag"] = f"near-dup of {img[~man].sample_id.iloc[j]}"
     pri = {"newhandpd": 0, "handpd": 1}
-    img["_pri"] = img.source_dataset.map(pri).fillna(2)
+    img["_pri"] = img.source_dataset.map(pri).fillna(2).where(~man, 3)
     img = img.sort_values(["_pri", "sample_id"])
     dup = img.duplicated("src_md5", keep="first")
     keeper = img[~dup].set_index("src_md5").sample_id

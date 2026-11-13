@@ -14,8 +14,9 @@ Full count tables are in `counts_images.csv` and `counts_signals.csv`.
 - **Use `subject_group`, not `subject_id`, for train/test splits.** It merges subject IDs that share identical images (see the caveats below).
 
 ## Totals
-- Images: 1637 (1296 scan + 341 rendered), 255 subject groups (179 PD, 76 HC).
-- Signals: 1133, 141 subject groups (89 PD, 52 HC).
+- Images: 2809 (1296 scan + 1513 rendered), 374 subject groups (238 PD, 136 HC).
+- Signals: 2385, 260 subject groups (148 PD, 112 HC).
+- New in this revision: HandyDiag (Thai handwriting + drawing tablet signals, 60 HC / 59 PD), 1252 signals and 1172 rendered images. It is the first source with real word and sentence handwriting at scale.
 
 ## Scanned images after deduplication (samples / subjects)
 | source | task | HC | PD |
@@ -40,6 +41,13 @@ Full count tables are in `counts_images.csv` and `counts_signals.csv`.
 | newhandpd | spiral, meander | 140 / 35 each | 124 / 31 each |
 | newhandpd | circle, circle_air, diadochokinesis_a, diadochokinesis_b | 35 / 35 each | 31 / 31 each |
 | pahaw_examples | spiral + handwriting_t2 to t14 | 65 / 2 | 64 / 2 |
+| handydiag | spiral | 105 / 60 | 106 / 59 |
+| handydiag | line_vertical, line_horizontal | 105 / 60 each | 106 / 59 each |
+| handydiag | handwriting_letters (Thai words) | 105 / 60 | 105 / 59 |
+| handydiag | handwriting_letters2 | 105 / 60 | 98 / 58 |
+| handydiag | handwriting_th_sentence (Thai sentence) | 105 / 60 | 101 / 59 |
+
+HandyDiag counts include both hands; the hand is in `note`. 80 HandyDiag signals have no x,y (see below), so 1172 of 1252 are rendered.
 
 ## Per source
 
@@ -93,6 +101,22 @@ Full count tables are in `counts_images.csv` and `counts_signals.csv`.
 - The full PaHaW database (75 subjects) needs a signed license request to BDALab (https://bdalab.utko.feec.vutbr.cz/), so it was not downloaded.
 - Cite: Drotar et al., "Evaluation of handwriting kinematics and pressure for differential diagnosis of Parkinson's disease", Artif. Intell. Med. 2016.
 
+### HandyDiag (Thai digital handwriting, 2026)
+- Source: GitHub `suchadat/HandyDiag_v1.0` (`Data_HC.zip`, `Data_PD.zip`), cloned into `data/raw/repos/handydiag` and extracted to `data/raw/handydiag`.
+- 119 subjects: 60 HC and 59 PD. Labels come from the `Data_HC` / `Data_PD` folders. One JSON per subject, with age, sex, education and dominant hand (kept in `note`).
+- Tasks, each with the right (R) and left (L) hand: Archimedean spiral, vertical lines, horizontal lines, `Letters` (word writing), `Letters 2`, and `TH Letters` (Thai sentence). Names come from the authors' MATLAB code (`extract_letters_feature.m`: Letters = words, THLetters = sentences).
+- Arrays: `dx`, `dy`, `PenPressure`, `Timestamp` (seconds). `null` entries mark pen lifts, so `pen_down` is false there. The coordinates are screen pixels with y pointing down, so `y = -y_screen` (the raw value is kept in `y_screen`).
+- Key spellings differ between files (`Spiral R dx` vs `SpiralRDx`). They are normalized by dropping spaces and lowercasing.
+- Data defects:
+  - In 89 subject-hand recordings the `Letters 2` dx/dy arrays are copies of `Letters`. In 7 of these the pressure is identical too, so the sample was skipped. In the other 82, `x` and `y` are NaN and noted. 80 of them were kept; 2 had empty arrays.
+  - 37 task/hand arrays are empty (mostly the left hand). They were skipped and are listed in `signals_skipped_duplicates.csv`.
+- License: non-commercial research and education only. Cite Chanwimalueang, Methawasin, Saetee, Rueangrong, Rung-ruang, Tantisatirapong, "Digital Thai Handwriting for Parkinson's Disease Screening", Scientific Reports, 2026.
+
+### Manual-drop hooks (empty by default)
+- `data/raw/manual/images/<source>/...`: login-gated image sets such as Kaggle zips. The label comes from a folder name (healthy/control/hc/normal or parkinson/pd/patient/pwp). Exact md5 duplicates of existing images are dropped, and near-duplicates are flagged in `overlap_flag`. `source_dataset` is `manual_<source>`.
+- `data/raw/manual/pahaw/`: the full licensed PaHaW. Files identical to `pahaw_examples` are skipped. `source_dataset` is `pahaw_full`.
+- See `MANUAL_DOWNLOADS.md`.
+
 ## Subject-overlap caveats (important)
 - **HandPD and NewHandPD overlap heavily.** 288 NewHandPD/HandPD scans are byte-identical:
   - 30 HandPD subjects are re-shipped as NewHandPD subjects, for example handpd_0098 as newhandpd_H11 and handpd_0261 as newhandpd_P10.
@@ -105,6 +129,21 @@ Full count tables are in `counts_images.csv` and `counts_signals.csv`.
 - The `ID_PATIENT` column of NewSpiral.csv is inconsistent (for example, healthy subjects carry IDs that HandPD uses for patients), so it was not used.
 - The remaining HandPD and NewHandPD subjects may still be the same people. Treat the two as one cohort when splitting.
 - UCI 395 and UCI 358 are one cohort. The UCI drawings may be the same people as the UCI PD signal subjects.
+
+## Candidates checked and rejected as duplicates (Nov 2026)
+- Mendeley Data `fd5wd6wmdj` ("Parkinson's Disease Detection Using Spiral Images", public download): 254 images. All 254 are byte-identical (md5) to kmader spiral/wave plus the UCI 395 drawings.
+- GitHub `shalusingh-tech/Spiral_pd_dataset`: 310 images, all md5-identical to existing NewHandPD/HandPD spirals.
+- GitHub `seensiravit/Parkinson-SpiralDrawing`: 447 images re-encoded from HandPD/NewHandPD (`sp1-H32`) and kmader (`V55HE12`), as its README says. They are not md5-identical, and its `degrade` folders are augmented. Rejected on provenance.
+- Already present (UCI 395 copies): `irenemao/Handwriting-Analysis`, `MichaelNormandyGavin/parkinsons`, `Kashish-jain/Parkinsons-training-data` on HuggingFace, and Kaggle `team-ai/parkinson-disease-spiral-drawings`.
+
+## Candidates checked and rejected for other reasons
+- HuggingFace `cycool29/spiral-nd-drawings`: 41 spirals with no labels.
+- GitHub `souvikchakraborty98/WACOM`: a few ad-hoc Wacom recordings (3-4 PD patients; the controls are the developers). There is no license and the task protocol is unclear.
+- Zenodo 15831979 (PARKINSON BRASIL spirals, NIATS-UFU, 15 HC / 24 PD): restricted access.
+- PLOS figshare 1034789 (Smits et al., standardized handwriting): only figures and methods, no raw data.
+- Cc-PhD (PLOS ONE 2025, `dreamhcy/MLforPD`): available only through an application form.
+- HandPDMultiMC / PDMultiMC: no public download link found.
+- DraWritePD: only segmentation code (`SvenNomm/drawritepd_segmentation`); the data is not public.
 
 ## Failed or not obtained
 - Full PaHaW: needs a license or login.

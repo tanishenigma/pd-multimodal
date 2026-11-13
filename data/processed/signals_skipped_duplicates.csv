@@ -34,3 +34,47 @@ sample_id,source_dataset,task,label,subject_id,original_path,n_samples,sampling,
 ,,,,,data/raw/uci358/Improved Spiral Test Using Digitized Graphics Tablet for Monitoring Parkinson's Disease/data/PWP/PWP (7).txt,,,,exact duplicate of uci395_P_09100005
 ,,,,,data/raw/uci358/Improved Spiral Test Using Digitized Graphics Tablet for Monitoring Parkinson's Disease/data/PWP/PWP (8).txt,,,,exact duplicate of uci395_P_11120003
 ,,,,,data/raw/uci358/Improved Spiral Test Using Digitized Graphics Tablet for Monitoring Parkinson's Disease/data/PWP/PWP (9).txt,,,,exact duplicate of uci395_P_11120004
+,,,,,data/raw/handydiag/Data_HC/263111428-Lmk_rawdata.json#spirall,,,,handydiag empty timestamp/pressure array
+,,,,,data/raw/handydiag/Data_HC/263111428-Lmk_rawdata.json#verticall,,,,handydiag empty timestamp/pressure array
+,,,,,data/raw/handydiag/Data_HC/263111428-Lmk_rawdata.json#horizontall,,,,handydiag empty timestamp/pressure array
+,,,,,data/raw/handydiag/Data_HC/263111428-Lmk_rawdata.json#lettersl,,,,handydiag empty timestamp/pressure array
+,,,,,data/raw/handydiag/Data_HC/263111428-Lmk_rawdata.json#letters2l,,,,handydiag letters2 identical to letters
+,,,,,data/raw/handydiag/Data_HC/263111428-Lmk_rawdata.json#thlettersl,,,,handydiag empty timestamp/pressure array
+,,,,,data/raw/handydiag/Data_PD/246251120-gS6_rawdata.json#letters2r,,,,handydiag empty timestamp/pressure array
+,,,,,data/raw/handydiag/Data_PD/2464111-9X4_rawdata.json#letters2r,,,,handydiag empty timestamp/pressure array
+,,,,,data/raw/handydiag/Data_PD/263171246-XJ__rawdata.json#spirall,,,,handydiag empty timestamp/pressure array
+,,,,,data/raw/handydiag/Data_PD/263171246-XJ__rawdata.json#verticall,,,,handydiag empty timestamp/pressure array
+,,,,,data/raw/handydiag/Data_PD/263171246-XJ__rawdata.json#horizontall,,,,handydiag empty timestamp/pressure array
+,,,,,data/raw/handydiag/Data_PD/263171246-XJ__rawdata.json#lettersl,,,,handydiag empty timestamp/pressure array
+,,,,,data/raw/handydiag/Data_PD/263171246-XJ__rawdata.json#letters2l,,,,handydiag letters2 identical to letters
+,,,,,data/raw/handydiag/Data_PD/263171246-XJ__rawdata.json#thlettersl,,,,handydiag empty timestamp/pressure array
+,,,,,data/raw/handydiag/Data_PD/263241146-ffk_rawdata.json#spirall,,,,handydiag empty timestamp/pressure array
+,,,,,data/raw/handydiag/Data_PD/263241146-ffk_rawdata.json#verticall,,,,handydiag empty timestamp/pressure array
+,,,,,data/raw/handydiag/Data_PD/263241146-ffk_rawdata.json#horizontall,,,,handydiag empty timestamp/pressure array
+,,,,,data/raw/handydiag/Data_PD/263241146-ffk_rawdata.json#lettersl,,,,handydiag empty timestamp/pressure array
+,,,,,data/raw/handydiag/Data_PD/263241146-ffk_rawdata.json#letters2l,,,,handydiag letters2 identical to letters
+,,,,,data/raw/handydiag/Data_PD/263241146-ffk_rawdata.json#thlettersl,,,,handydiag empty timestamp/pressure array
+,,,,,data/raw/handydiag/Data_PD/263311033-ZEn_rawdata.json#spirall,,,,handydiag empty timestamp/pressure array
+,,,,,data/raw/handydiag/Data_PD/263311033-ZEn_rawdata.json#verticall,,,,handydiag empty timestamp/pressure array
+,,,,,data/raw/handydiag/Data_PD/263311033-ZEn_rawdata.json#horizontall,,,,handydiag empty timestamp/pressure array
+,,,,,data/raw/handydiag/Data_PD/263311033-ZEn_rawdata.json#lettersl,,,,handydiag empty timestamp/pressure array
+,,,,,data/raw/handydiag/Data_PD/263311033-ZEn_rawdata.json#letters2l,,,,handydiag letters2 identical to letters
+,,,,,data/raw/handydiag/Data_PD/263311033-ZEn_rawdata.json#thlettersl,,,,handydiag empty timestamp/pressure array
+,,,,,data/raw/handydiag/Data_PD/263311042-bOz_rawdata.json#spiralr,,,,handydiag empty timestamp/pressure array
+,,,,,data/raw/handydiag/Data_PD/263311042-bOz_rawdata.json#verticalr,,,,handydiag empty timestamp/pressure array
+,,,,,data/raw/handydiag/Data_PD/263311042-bOz_rawdata.json#horizontalr,,,,handydiag empty timestamp/pressure array
+,,,,,data/raw/handydiag/Data_PD/263311042-bOz_rawdata.json#lettersr,,,,handydiag empty timestamp/pressure array
+,,,,,data/raw/handydiag/Data_PD/263311042-bOz_rawdata.json#letters2r,,,,handydiag letters2 identical to letters
+,,,,,data/raw/handydiag/Data_PD/263311042-bOz_rawdata.json#thlettersr,,,,handydiag empty timestamp/pressure array
+,,,,,data/raw/handydiag/Data_PD/263311113-bwc_rawdata.json#spirall,,,,handydiag empty timestamp/pressure array
+,,,,,data/raw/handydiag/Data_PD/263311113-bwc_rawdata.json#verticall,,,,handydiag empty timestamp/pressure array
+,,,,,data/raw/handydiag/Data_PD/263311113-bwc_rawdata.json#horizontall,,,,handydiag empty timestamp/pressure array
+,,,,,data/raw/handydiag/Data_PD/263311113-bwc_rawdata.json#lettersl,,,,handydiag empty timestamp/pressure array
+,,,,,data/raw/handydiag/Data_PD/263311113-bwc_rawdata.json#letters2l,,,,handydiag letters2 identical to letters
+,,,,,data/raw/handydiag/Data_PD/263311113-bwc_rawdata.json#thlettersl,,,,handydiag empty timestamp/pressure array
+,,,,,data/raw/handydiag/Data_PD/263311131-RF6_rawdata.json#spirall,,,,handydiag empty timestamp/pressure array
+,,,,,data/raw/handydiag/Data_PD/263311131-RF6_rawdata.json#verticall,,,,handydiag empty timestamp/pressure array
+,,,,,data/raw/handydiag/Data_PD/263311131-RF6_rawdata.json#horizontall,,,,handydiag empty timestamp/pressure array
+,,,,,data/raw/handydiag/Data_PD/263311131-RF6_rawdata.json#lettersl,,,,handydiag empty timestamp/pressure array
+,,,,,data/raw/handydiag/Data_PD/263311131-RF6_rawdata.json#letters2l,,,,handydiag letters2 identical to letters
+,,,,,data/raw/handydiag/Data_PD/263311131-RF6_rawdata.json#thlettersl,,,,handydiag empty timestamp/pressure array

@@ -1,4 +1,16 @@
 source_dataset,modality,task,label,samples,subjects,subject_groups
+handydiag,signal,handwriting_letters,0,105,60,60
+handydiag,signal,handwriting_letters,1,105,59,59
+handydiag,signal,handwriting_letters2,0,105,60,60
+handydiag,signal,handwriting_letters2,1,98,58,58
+handydiag,signal,handwriting_th_sentence,0,105,60,60
+handydiag,signal,handwriting_th_sentence,1,101,59,59
+handydiag,signal,line_horizontal,0,105,60,60
+handydiag,signal,line_horizontal,1,106,59,59
+handydiag,signal,line_vertical,0,105,60,60
+handydiag,signal,line_vertical,1,106,59,59
+handydiag,signal,spiral,0,105,60,60
+handydiag,signal,spiral,1,106,59,59
 newhandpd,signal,circle,0,35,35,35
 newhandpd,signal,circle,1,31,31,25
 newhandpd,signal,circle_air,0,35,35,35
